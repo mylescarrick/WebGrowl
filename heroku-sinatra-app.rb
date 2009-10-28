@@ -70,7 +70,7 @@ post '/notifications' do
   jabber.send(Jabber::Presence.new)
   
 
-  send(jabber, to, 'Hi there')
+  send(jabber, to, msg)
 
 
   # #send the message if you're online
