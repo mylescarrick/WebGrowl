@@ -17,15 +17,25 @@ configure :production do
   #       from ENV['DATABASE_URI'] (see /env route below)
 end
 
+helpers do
+  def invalid_token?(token)
+    token != "g"
+  end
+end
+
+
 # Quick test
 get '/' do
-  "Congradulations!
-   You're running a Sinatra application on Heroku!"
+  "Home"
 end
 
 post '/notifications' do
   
   msg = params[:msg]
+  token = params[:token]
+  
+  return "Unauthorized" if token.nil? or invalid_token?(params[:token])
+
 
   to = "gabe@avantbard.com"
   # 
