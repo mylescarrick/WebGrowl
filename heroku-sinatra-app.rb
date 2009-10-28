@@ -7,6 +7,7 @@
 #
 require 'rubygems'
 require 'sinatra'
+require 'xmpp4r-simple'
 
 configure :production do
   # Configure stuff here you'll want to
@@ -20,6 +21,21 @@ end
 get '/' do
   "Congradulations!
    You're running a Sinatra application on Heroku!"
+end
+
+post '/notifications' do
+  
+  msg = params[:msg]
+
+  to = "gabe@avantbard.com"
+  # 
+  # #send the message
+  jabber = Jabber::Simple.new('webgrowl@gmail.com', 'growller')
+  jabber.deliver(to, msg)
+
+  "#Message: {msg} <br/>
+  Sent to #{to}"
+  
 end
 
 # Test at <appname>.heroku.com
