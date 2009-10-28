@@ -21,6 +21,20 @@ helpers do
   def invalid_token?(token)
     token != "g"
   end
+
+  def is_online?(email)
+    node,domain = email.split('@')
+    puts "jabber.roster #{jabber.roster}"
+    puts "jabber.roster.items #{jabber.roster.items}"
+    roster_item = jabber.roster.items[Jabber::JID.new(node, domain)] 
+    
+    roster_item and roster_item.online?
+  end
+  
+  def jabber
+    @jabber ||= Jabber::Simple.new('webgrowl@gmail.com', 'growller')
+  end
+  
 end
 
 
@@ -34,17 +48,21 @@ post '/notifications' do
   msg = params[:msg]
   token = params[:token]
   
+  #look up xmpp id to send to
+  to = "gabe@avantbard.com"
+  
+  #are you authorzed?
   return "Unauthorized" if token.nil? or invalid_token?(params[:token])
 
+  # #send the message if you're online
+  if is_online?(to)
+    jabber.deliver(to, msg) 
 
-  to = "gabe@avantbard.com"
-  # 
-  # #send the message
-  jabber = Jabber::Simple.new('webgrowl@gmail.com', 'growller')
-  jabber.deliver(to, msg)
-
-  "#Message: {msg} <br/>
-  Sent to #{to}"
+    "#Message: {msg} <br/>
+    Sent to #{to}"
+  else
+    "You're not online."
+  end
   
 end
 
