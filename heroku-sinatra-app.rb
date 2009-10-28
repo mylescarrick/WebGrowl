@@ -7,7 +7,8 @@
 #
 require 'rubygems'
 require 'sinatra'
-require 'xmpp4r-simple'
+require 'xmpp4r'
+require "xmpp4r/roster"
 
 configure :production do
   # Configure stuff here you'll want to
@@ -22,17 +23,25 @@ helpers do
     token != "g"
   end
 
-  def is_online?(email)
+
+  def is_online?(jabber, email)
     node,domain = email.split('@')
-    puts "jabber.roster #{jabber.roster}"
-    puts "jabber.roster.items #{jabber.roster.items}"
-    roster_item = jabber.roster.items[Jabber::JID.new(node, domain)] 
+    roster = Jabber::Roster::Helper.new(jabber)
+    puts "jabber.roster #{roster}"
+    puts "jabber.roster.items #{roster.items}"
+    roster_item = roster.items[Jabber::JID.new(node, domain)] 
     
     roster_item and roster_item.online?
   end
   
-  def jabber
-    @jabber ||= Jabber::Simple.new('webgrowl@gmail.com', 'growller')
+  # def jabber
+  #   @jabber ||= Jabber::Simple.new('webgrowl@gmail.com', 'growller')
+  # end
+  
+  def send(jabber, to, msg_text)
+    message = Jabber::Message::new(to, msg_text)
+    message.type = :chat
+    jabber.send(message)    
   end
   
 end
@@ -54,15 +63,25 @@ post '/notifications' do
   #are you authorzed?
   return "Unauthorized" if token.nil? or invalid_token?(params[:token])
 
-  # #send the message if you're online
-  if is_online?(to)
-    jabber.deliver(to, msg) 
 
-    "#Message: {msg} <br/>
-    Sent to #{to}"
-  else
-    "You're not online."
-  end
+  jabber = Jabber::Client::new(Jabber::JID::new("webgrowl@gmail.com"))
+  jabber.connect
+  jabber.auth("growller")
+  jabber.send(Jabber::Presence.new)
+  
+
+  send(jabber, to, 'Hi there')
+
+
+  # #send the message if you're online
+  # if is_online?(jabber, to)
+  #   send(jabber, to, 'Hi there')
+  # 
+  #   "#Message: {msg} <br/>
+  #   Sent to #{to}"
+  # else
+  #   "You're not online."
+  # end
   
 end
 
